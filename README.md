@@ -1,38 +1,37 @@
 # 📱 App Asistencia Odoo
 
-Aplicación móvil de control de asistencia desarrollada con **React Native + Expo** e integrada directamente con **Odoo** mediante **JSON-RPC**.
+Aplicación móvil de control de asistencia desarrollada con **React Native + Expo** e integrada con **Odoo** mediante **JSON-RPC**.
 
-El sistema permite a los empleados registrar entradas y salidas desde dispositivos móviles, incorporando validación de ubicación geográfica, configuración de entornos y sincronización en tiempo real con el ERP Odoo.
-
----
-
-# 🚀 Demo y propósito
-
-Esta aplicación fue creada como una solución móvil para digitalizar el control de asistencia empresarial conectado con Odoo, facilitando:
-
-- Registro de jornada laboral desde cualquier lugar
-- Validación de ubicación del empleado
-- Comunicación directa con Odoo ERP
-- Gestión multiplataforma desde una única base de código
+El objetivo del proyecto es permitir que los empleados puedan registrar su jornada laboral desde un dispositivo móvil, realizando **check-in** y **check-out** de forma sencilla, con validación de ubicación y comunicación directa con el servidor Odoo.
 
 ---
 
-# 🛠️ Tecnologías utilizadas
+## 🚀 Descripción del proyecto
 
-## Frontend móvil
+**App Asistencia Odoo** es una solución móvil pensada para empresas que utilizan Odoo como sistema ERP y necesitan gestionar la asistencia de sus empleados desde una aplicación multiplataforma.
+
+La aplicación permite consultar el estado actual de asistencia del usuario, registrar entradas y salidas, validar permisos de ubicación y enviar la información al modelo de asistencia de Odoo mediante peticiones JSON-RPC.
+
+---
+
+## 🛠️ Tecnologías utilizadas
+
+### Frontend móvil
 
 - React Native
 - Expo
 - TypeScript
 
-## Backend / Integración
+### Integración
 
-- Odoo JSON-RPC API
+- Odoo
+- JSON-RPC API
+- Modelo `hr.attendance`
+
+### Herramientas
+
 - Node.js
 - npm
-
-## Herramientas de desarrollo
-
 - Expo CLI
 - EAS Build
 - Android Studio
@@ -40,71 +39,122 @@ Esta aplicación fue creada como una solución móvil para digitalizar el contro
 
 ---
 
-# ✨ Funcionalidades principales
+## ✨ Funcionalidades principales
 
-## ✅ Registro de asistencia
-
-- Check-In
-- Check-Out
-- Control de sesiones de trabajo
-
-## ✅ Integración con Odoo
-
-- Autenticación mediante JSON-RPC
-- Comunicación directa con modelos de Odoo
-- Sincronización en tiempo real
-
-## ✅ Validación de ubicación
-
-- Obtención de coordenadas GPS
-- Verificación de permisos
-- Restricción basada en localización
-
-## ✅ Configuración de entornos
-
-- Desarrollo
-- Producción
-- Configuración centralizada
-
-## ✅ Compatibilidad multiplataforma
-
-- Android
-- iOS
-- Web (Expo)
-
-## ✅ Ejecución rápida con Expo
-
-- Soporte QR
-- Hot Reload
-- Testing rápido en dispositivos físicos
+- Registro de entrada laboral (**Check-In**)
+- Registro de salida laboral (**Check-Out**)
+- Integración directa con Odoo
+- Comunicación mediante JSON-RPC
+- Validación de ubicación GPS
+- Gestión de permisos de localización
+- Configuración de entorno de desarrollo y producción
+- Compatible con Android, iOS y Web
+- Ejecución rápida mediante QR con Expo
+- Separación entre lógica, servicios y configuración
 
 ---
 
-# 📂 Estructura del proyecto
+## 📱 Flujo principal de la aplicación
 
-```bash
-src/
-│
-├── api/
-│   └── odooApi.ts           # Comunicación JSON-RPC con Odoo
-│
-├── config/
-│   └── config.tsx           # Variables y configuración global
-│
-├── hooks/
-│   ├── useAttendanceMain.ts # Lógica principal de asistencia
-│   └── useLocation.ts       # Gestión de geolocalización
-│
-├── screens/                 # Pantallas de la aplicación
-├── components/              # Componentes reutilizables
-└── services/                # Servicios auxiliares
+```text
+Usuario abre la aplicación
+        ↓
+La app solicita permisos de ubicación
+        ↓
+Se obtiene la ubicación actual del empleado
+        ↓
+El usuario realiza Check-In o Check-Out
+        ↓
+La app envía la petición a Odoo mediante JSON-RPC
+        ↓
+Odoo registra la asistencia en hr.attendance
+        ↓
+La aplicación muestra el estado actualizado
 ```
 
 ---
 
-# ⚙️ Configuración del proyecto
+## 🗄️ Modelo relacional / integración con Odoo
 
-## 1️⃣ Clonar repositorio
+Aunque la base de datos principal es gestionada por **Odoo**, la aplicación se comunica con diferentes entidades relacionadas con el control de asistencia.
+
+### Entidades principales
+
+| Entidad / Modelo | Descripción |
+|---|---|
+| `res.users` | Usuario autenticado que accede a la aplicación. |
+| `hr.employee` | Empleado asociado al usuario de Odoo. |
+| `hr.attendance` | Modelo donde se registran las entradas y salidas laborales. |
+| `res.company` | Empresa a la que pertenece el empleado. |
+| `res.partner` | Información de contacto relacionada con usuarios o empleados. |
+| `location` | Datos de ubicación capturados desde el dispositivo móvil. |
+
+---
+
+### Relaciones principales
+
+| Relación | Tipo | Descripción |
+|---|---|---|
+| `res.users` → `hr.employee` | 1:1 / 1:N | Un usuario de Odoo puede estar vinculado a uno o varios empleados según la configuración. |
+| `hr.employee` → `hr.attendance` | 1:N | Un empleado puede tener múltiples registros de asistencia. |
+| `res.company` → `hr.employee` | 1:N | Una empresa puede tener varios empleados. |
+| `res.users` → `res.company` | N:1 | Un usuario pertenece a una empresa principal. |
+| `location` → `hr.attendance` | 1:1 | La ubicación capturada puede asociarse al momento del registro de asistencia. |
+
+---
+
+### Representación simplificada
+
+```text
+res.company
+    │
+    └── hr.employee
+            │
+            └── hr.attendance
+                    ├── check_in
+                    ├── check_out
+                    ├── latitude
+                    └── longitude
+
+res.users
+    │
+    └── hr.employee
+```
+
+---
+
+## 📂 Estructura del proyecto
+
+```bash
+app-asistencia-odoo/
+│
+├── src/
+│   │
+│   ├── api/
+│   │   └── odooApi.ts              # Comunicación con Odoo mediante JSON-RPC
+│   │
+│   ├── config/
+│   │   └── config.tsx              # Configuración del servidor y variables globales
+│   │
+│   ├── hooks/
+│   │   ├── useAttendanceMain.ts    # Lógica principal de asistencia
+│   │   └── useLocation.ts          # Gestión de ubicación y permisos GPS
+│   │
+│   ├── components/                 # Componentes reutilizables
+│   ├── screens/                    # Pantallas principales de la aplicación
+│   └── services/                   # Servicios auxiliares
+│
+├── app.json                        # Configuración de Expo
+├── package.json                    # Dependencias y scripts del proyecto
+├── tsconfig.json                   # Configuración de TypeScript
+└── README.md
+```
+
+---
+
+## ⚙️ Configuración del proyecto
+
+### 1️⃣ Clonar el repositorio
 
 ```bash
 git clone https://github.com/LucPinheiro/app-asistencia-odoo.git
@@ -113,7 +163,7 @@ cd app-asistencia-odoo
 
 ---
 
-## 2️⃣ Instalar dependencias
+### 2️⃣ Instalar dependencias
 
 ```bash
 npm install
@@ -121,112 +171,203 @@ npm install
 
 ---
 
-## 3️⃣ Configurar conexión Odoo
+### 3️⃣ Configurar conexión con Odoo
 
-Editar archivo:
+Editar el archivo de configuración:
 
 ```bash
-config.tsx
+src/config/config.tsx
 ```
 
-Configurar:
+Ejemplo de configuración:
 
 ```ts
 export const CONFIG = {
   URL: 'https://tu-servidor-odoo.com',
-  DB: 'nombre_bd',
+  DB: 'nombre_de_base_de_datos',
 };
 ```
 
 ---
 
-## 4️⃣ Ejecutar proyecto
+### 4️⃣ Configurar permisos de ubicación
+
+Verificar que la configuración de Expo incluya permisos de localización para Android e iOS.
+
+Ejemplo en `app.json`:
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "La aplicación necesita acceder a tu ubicación para registrar la asistencia."
+        }
+      ]
+    ]
+  }
+}
+```
+
+---
+
+### 5️⃣ Ejecutar la aplicación
 
 ```bash
 npx expo start
 ```
 
----
+Luego puedes abrir la aplicación mediante:
 
-# 📍 Permisos requeridos
-
-La aplicación requiere permisos de:
-
-- Ubicación GPS
-- Acceso a red
-- Ejecución móvil
+- Expo Go escaneando el código QR
+- Emulador Android
+- Simulador iOS
+- Navegador web
 
 ---
 
-# 🔗 Comunicación con Odoo
+## 🔐 Configuración de Odoo
 
-La integración se realiza mediante:
+Para que la aplicación funcione correctamente, Odoo debe tener activo el módulo de empleados y asistencia.
 
-- JSON-RPC
-- Autenticación de usuarios
-- Llamadas a modelos Odoo
-- Gestión de asistencia (`hr.attendance`)
+### Requisitos en Odoo
+
+- Módulo de empleados instalado
+- Módulo de asistencias instalado
+- Usuario con permisos de acceso
+- Empleado vinculado al usuario
+- Acceso disponible a JSON-RPC
 
 ---
 
-# 📱 Plataformas soportadas
+## 🔗 Comunicación con Odoo
+
+La aplicación se comunica con Odoo mediante peticiones JSON-RPC.
+
+### Ejemplo conceptual de petición
+
+```ts
+const response = await fetch(`${ODOO_URL}/jsonrpc`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    jsonrpc: '2.0',
+    method: 'call',
+    params: {
+      service: 'object',
+      method: 'execute_kw',
+      args: [
+        DB,
+        uid,
+        password,
+        'hr.attendance',
+        'search_read',
+        [[]],
+      ],
+    },
+  }),
+});
+```
+
+---
+
+## 📍 Gestión de ubicación
+
+La aplicación utiliza la ubicación del dispositivo para validar desde dónde se realiza el registro de asistencia.
+
+### Funciones relacionadas
+
+- Solicitud de permisos GPS
+- Obtención de coordenadas actuales
+- Validación antes del Check-In / Check-Out
+- Manejo de errores si el permiso es denegado
+
+---
+
+## 🧠 Arquitectura del proyecto
+
+El proyecto está organizado siguiendo una arquitectura modular:
+
+| Capa | Responsabilidad |
+|---|---|
+| `api` | Comunicación externa con Odoo. |
+| `config` | Variables globales y configuración del servidor. |
+| `hooks` | Lógica reutilizable de negocio. |
+| `screens` | Pantallas visibles para el usuario. |
+| `components` | Elementos reutilizables de interfaz. |
+| `services` | Funciones auxiliares y servicios internos. |
+
+---
+
+## 📱 Plataformas soportadas
 
 | Plataforma | Estado |
 |---|---|
-| Android | ✅ |
-| iOS | ✅ |
-| Web | ✅ |
+| Android | ✅ Compatible |
+| iOS | ✅ Compatible |
+| Web | ✅ Compatible mediante Expo |
 
 ---
 
-# 🧠 Arquitectura
+## 🔒 Seguridad y validaciones
 
-La aplicación sigue una arquitectura modular basada en:
-
-- Hooks personalizados
-- Separación de lógica y UI
-- Servicios reutilizables
-- Configuración centralizada
-
----
-
-# 🔒 Seguridad y validaciones
-
-- Validación de autenticación
-- Control de permisos GPS
+- Validación de usuario autenticado
 - Manejo de errores de conexión
-- Configuración por entornos
+- Validación de permisos de ubicación
+- Separación de configuración por entorno
+- Comunicación centralizada con Odoo
+- Control del estado de asistencia
 
 ---
 
-# 📸 Capturas
+## 📸 Capturas de pantalla
 
-> Aquí puedes agregar screenshots de:
+> Puedes agregar aquí imágenes del proyecto.
 
-- Pantalla de login
-- Check-In / Check-Out
-- Validación GPS
-- Dashboard principal
+```md
+![Login](./assets/login.png)
+![Check In](./assets/checkin.png)
+![Check Out](./assets/checkout.png)
+```
 
 ---
 
-# 🚀 Posibles mejoras futuras
+## 🚀 Posibles mejoras futuras
 
+- Modo offline para registrar asistencias sin conexión
+- Sincronización automática al recuperar internet
+- Historial de asistencias del empleado
+- Panel administrativo
 - Notificaciones push
-- Modo offline
-- Historial de asistencias
-- Dashboard administrativo
 - Reconocimiento facial
 - Firma digital
+- Validación por zona geográfica
+- Dashboard con métricas de asistencia
 
 ---
 
-# 👨‍💻 Autor
+## 📦 Scripts disponibles
+
+```bash
+npm install
+npm start
+npx expo start
+npx expo run:android
+npx expo run:ios
+```
+
+---
+
+## 👨‍💻 Autor
 
 Desarrollado por [LucPinheiro](https://github.com/LucPinheiro)
 
 ---
 
-# 📄 Licencia
+## 📄 Licencia
 
 Este proyecto se encuentra bajo la licencia MIT.
