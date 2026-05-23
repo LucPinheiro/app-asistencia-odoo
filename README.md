@@ -1,4 +1,4 @@
-# Asistenica de Empleados: React + Odoo
+# Asistencia de Empleados: React + Odoo
 
 Aplicación móvil de control de asistencia integrada con Odoo, desarrollada con **React Native + Expo**. Permite a los empleados registrar entradas y salidas de forma sencilla, incorporando verificación de ubicación y comunicación en tiempo real con el servidor Odoo mediante JSON-RPC.
 
